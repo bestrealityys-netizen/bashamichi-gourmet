@@ -1,0 +1,5 @@
+# Netlify continuous deployment 設定（方式B）
+# site/ 配下の静的ファイル（index.html）だけを公開。ビルドは行わない。
+[build]
+  publish = "site"
+  command = ""

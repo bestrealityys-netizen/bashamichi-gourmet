@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>馬車道グルメ｜駅近 実食ガイド</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{--tb:#ff8a00;--tb-dark:#e96d00;--tb-soft:#fff4e6;--ink:#3c3c3c;--sub:#888;--line:#e7e7e7;--bg:#fafafa;--card:#fff;--star:#ff9d2e;--gold:#e8a200;}
+  html[data-theme="dark"]{--tb:#ff9d2e;--tb-dark:#ffb155;--tb-soft:#3a2e1c;--ink:#e8e8e8;--sub:#9a9a9a;--line:#333;--bg:#16181c;--card:#1f2228;--star:#ffb74d;--gold:#ffcf5c;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;transition:background .2s,color .2s;}
+  a{color:inherit;text-decoration:none}
+  header.hero{background:linear-gradient(135deg,#ff8a00,#ff5e62);color:#fff;padding:22px 16px 18px;position:relative}
+  .hero h1{margin:0;font-size:1.5rem;letter-spacing:.02em;}
+  .hero p{margin:6px 0 0;font-size:.85rem;opacity:.95}
+  .hero .stat{margin-top:12px;font-size:.78rem;background:rgba(255,255,255,.18);display:inline-block;padding:4px 12px;border-radius:20px}
+  .theme-btn{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.22);border:none;color:#fff;font-size:1.1rem;width:38px;height:38px;border-radius:50%;cursor:pointer}
+  .wrap{max-width:880px;margin:0 auto;padding:0 14px}
+  .toolbar{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line);padding:10px 0;margin-bottom:4px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+  .toolbar .wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  #search{flex:1;min-width:150px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.9rem;background:var(--card);color:var(--ink)}
+  select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;background:var(--card);color:var(--ink)}
+  .filterbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:8px 0 2px;font-size:.8rem;color:var(--sub)}
+  .filterbar label{display:flex;align-items:center;gap:6px;white-space:nowrap}
+  #distVal{font-weight:700;color:var(--tb-dark)}
+  input[type=range]{accent-color:var(--tb)}
+  .favtgl{cursor:pointer;border:1px solid var(--tb);color:var(--tb-dark);background:var(--card);border-radius:20px;padding:4px 12px}
+  .favtgl.active{background:var(--tb);color:#fff}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 2px}
+  .chip{font-size:.78rem;border:1px solid var(--tb);color:var(--tb-dark);background:var(--card);padding:4px 12px;border-radius:20px;cursor:pointer;transition:.15s}
+  .chip.active{background:var(--tb);color:#fff}
+  .count{color:var(--sub);font-size:.8rem;padding:8px 0 10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden;display:flex;transition:.15s;position:relative}
+  .card:hover{box-shadow:0 4px 16px rgba(0,0,0,.10);transform:translateY(-1px)}
+  .card.top{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+  .thumb{width:100px;min-width:100px;background:linear-gradient(135deg,#ffe2c2,#ffd0d4);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.7rem;font-weight:700;position:relative}
+  html[data-theme="dark"] .thumb{background:linear-gradient(135deg,#5a4326,#5a2e30)}
+  .topbadge{position:absolute;top:6px;left:6px;background:var(--gold);color:#fff;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:4px}
+  .body{padding:12px 14px;flex:1;min-width:0}
+  .rank{display:inline-block;background:var(--ink);color:var(--card);font-size:.7rem;border-radius:5px;padding:1px 7px;margin-right:6px;vertical-align:middle}
+  .name{font-size:1.05rem;font-weight:700;vertical-align:middle}
+  .row1{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .score{white-space:nowrap;font-weight:700;font-size:1.05rem}
+  .score.g{color:var(--gold)} .score.o{color:var(--tb-dark)} .score.n{color:var(--sub)}
+  .score .star{color:var(--star)}
+  .score small{color:var(--sub);font-weight:400;font-size:.7rem}
+  .fav{cursor:pointer;font-size:1.25rem;line-height:1;color:#ccc;background:none;border:none;padding:0 2px}
+  .fav.on{color:var(--tb)}
+  .meta{font-size:.82rem;color:var(--sub);margin:3px 0 6px}
+  .dist{color:var(--tb-dark);font-weight:700}
+  .award{display:inline-block;background:var(--tb-soft);color:var(--tb-dark);font-size:.72rem;border:1px solid var(--tb);border-radius:5px;padding:1px 7px;margin:0 4px 4px 0}
+  .summary{font-size:.86rem;margin:4px 0}
+  .sig{font-size:.82rem;color:var(--tb-dark);margin:2px 0}
+  .sig b{color:var(--tb-dark)}
+  .review{font-size:.8rem;color:var(--sub);background:var(--tb-soft);border-left:3px solid var(--tb);padding:6px 10px;border-radius:0 6px 6px 0;margin:6px 0 2px}
+  .tags{margin-top:6px}
+  .tag{font-size:.72rem;color:var(--sub);background:var(--line);border-radius:4px;padding:1px 7px;margin:0 4px 4px 0;display:inline-block;cursor:pointer}
+  .tag:hover{background:var(--tb);color:#fff}
+  .actions{margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .tl-link,.mapjump{font-size:.78rem;color:var(--tb-dark);font-weight:700;cursor:pointer}
+  .viewtoggle{display:flex;gap:6px;margin:6px 0 10px}
+  .viewtoggle button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px 16px;font-size:.85rem;cursor:pointer;color:var(--sub)}
+  .viewtoggle button.active{background:var(--tb);color:#fff;border-color:var(--tb)}
+  #map{height:440px;border-radius:12px;border:1px solid var(--line);margin-bottom:6px;display:none}
+  .mapnote{font-size:.72rem;color:var(--sub);margin-bottom:12px;display:none}
+  .leaflet-popup-content{margin:10px 12px;font-size:.82rem;line-height:1.5}
+  .leaflet-popup-content b{font-size:.95rem}
+  .leaflet-popup-content .ps{color:var(--tb-dark);font-weight:700}
+  .leaflet-popup-content a{color:var(--tb-dark);font-weight:700}
+  .pin{background:var(--tb);color:#fff;border:2px solid #fff;border-radius:50% 50% 50% 0;width:26px;height:26px;transform:rotate(-45deg);box-shadow:0 2px 5px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700}
+  .pin span{transform:rotate(45deg)}
+  .pin.station{background:#2d6cdf}
+  .pin.fav{background:#e6394a}
+  .updates{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:8px 0 18px}
+  .updates h2{font-size:1rem;margin:0 0 8px;color:var(--tb-dark)}
+  .updates li{font-size:.82rem;margin-bottom:6px;list-style:none;border-left:3px solid var(--tb-soft);padding-left:10px}
+  .updates .ud{font-weight:700} .updates .ua{color:var(--tb-dark)}
+  .empty{color:var(--sub);padding:30px;text-align:center}
+  footer{text-align:center;color:var(--sub);font-size:.74rem;padding:18px}
+  @media(max-width:480px){.thumb{width:70px;min-width:70px;font-size:1.2rem}.name{font-size:.96rem}}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="ダークモード切替">🌙</button>
+  <h1>🍴 馬車道グルメ</h1>
+  <p>__SUBTITLE__</p>
+  <span class="stat">駅徒歩圏 __TOTAL__店 ・ 距離が近い順 ・ 最終更新 __NOW__</span>
+</div></header>
+
+<div class="toolbar"><div class="wrap" style="flex-direction:column;align-items:stretch">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <input id="search" type="search" placeholder="店名・料理・キーワードで検索">
+    <select id="sort">
+      <option value="dist">駅から近い順</option>
+      <option value="rate">評価が高い順</option>
+      <option value="fav">お気に入り優先</option>
+    </select>
+    <button class="favtgl" id="favtgl" onclick="toggleFavOnly()">☆ お気に入り</button>
+  </div>
+  <div class="filterbar">
+    <label>🚶 徒歩 <input type="range" id="dist" min="2" max="9" value="9" oninput="onDist()"> <span id="distVal">9分以内</span></label>
+    <label>💰 <select id="price" onchange="render()">
+      <option value="all">価格すべて</option>
+      <option value="low">〜1,999円(昼)</option>
+      <option value="mid">2,000〜3,999円(昼)</option>
+      <option value="high">4,000円〜(昼)</option>
+    </select></label>
+  </div>
+  <div class="chips" id="chips"></div>
+</div></div>
+
+<main class="wrap">
+  <div class="viewtoggle">
+    <button id="btnList" class="active" onclick="setView('list')">📋 リスト</button>
+    <button id="btnMap" onclick="setView('map')">🗺 地図</button>
+  </div>
+  <div id="map"></div>
+  <div class="mapnote" id="mapnote">📍 ピンは住所をもとにした概算位置です。青=馬車道駅／赤=お気に入り。ピンをクリックで店舗情報が出ます。</div>
+  <div class="count" id="count"></div>
+  <div id="list"></div>
+  <section class="updates"><h2>📝 更新履歴（毎回あたらしい視点で充実）</h2><ul id="updates"></ul></section>
+</main>
+
+<footer>出典：食べログ・くふうトリップ・ヒトサラ等の口コミ情報をもとに作成。評価・営業情報は変動します。来店前に各店公式・食べログでご確認ください。<br>自動更新サイト ／ Generated __NOW__</footer>
+
+<script>
+const DATA = __DATA__;
+const UPDATES = __UPDATES__;
+const STATION = __STATION__;
+let activeGenre="all", favOnly=false, maxDist=99;
+const DMIN=Math.min(...DATA.map(r=>r.distance_min)), DMAX=Math.max(...DATA.map(r=>r.distance_min));
+maxDist=DMAX;
+let map=null, markerLayer=null, mapReady=false, markerById={};
+
+const LS_FAV="bashamichi_favs", LS_THEME="bashamichi_theme";
+let favs = new Set(JSON.parse(localStorage.getItem(LS_FAV)||"[]"));
+function saveFavs(){localStorage.setItem(LS_FAV,JSON.stringify([...favs]));}
+function toggleFav(id){favs.has(id)?favs.delete(id):favs.add(id);saveFavs();render();}
+function toggleFavOnly(){favOnly=!favOnly;document.getElementById("favtgl").classList.toggle("active",favOnly);document.getElementById("favtgl").innerHTML=(favOnly?"★":"☆")+" お気に入り";render();}
+
+if(localStorage.getItem(LS_THEME)==="dark"){document.documentElement.dataset.theme="dark";}
+function toggleTheme(){
+  const dark=document.documentElement.dataset.theme==="dark";
+  document.documentElement.dataset.theme=dark?"light":"dark";
+  localStorage.setItem(LS_THEME,dark?"light":"dark");
+  document.getElementById("themeBtn").textContent=dark?"🌙":"☀️";
+  if(map) setTimeout(()=>map.invalidateSize(),50);
+}
+document.getElementById("themeBtn").textContent=document.documentElement.dataset.theme==="dark"?"☀️":"🌙";
+
+const genres=["all",...Array.from(new Set(DATA.map(r=>r.genre.split("・")[0])))];
+const chips=document.getElementById("chips");
+genres.forEach(g=>{
+  const c=document.createElement("span");
+  c.className="chip"+(g==="all"?" active":"");
+  c.textContent=g==="all"?"すべて":g;
+  c.onclick=()=>{activeGenre=g;document.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));c.classList.add("active");render();};
+  chips.appendChild(c);
+});
+
+function onDist(){maxDist=+document.getElementById("dist").value;document.getElementById("distVal").textContent=maxDist+"分以内";render();}
+function priceLow(r){const s=(r.price_lunch&&r.price_lunch!=="—")?r.price_lunch:r.price_dinner;const m=(s||"").replace(/,/g,"").match(/\d+/);return m?+m[0]:0;}
+function priceOK(r){const p=document.getElementById("price").value;if(p==="all")return true;const v=priceLow(r);if(p==="low")return v<2000;if(p==="mid")return v>=2000&&v<4000;if(p==="high")return v>=4000;return true;}
+
+function scoreCls(r){if(r.rating==null)return"n";if(r.rating>=3.7)return"g";if(r.rating>=3.5)return"o";return"o";}
+function scoreHTML(r){
+  if(r.rating==null)return '<span class="score n">評価準備中</span>';
+  const rv=r.reviews!=null?r.rating_source+"/"+r.reviews+"件":r.rating_source;
+  return '<span class="score '+scoreCls(r)+'"><span class="star">★</span>'+r.rating.toFixed(2)+' <small>'+rv+'</small></span>';
+}
+
+function tagClick(t){document.getElementById("search").value=t;render();}
+
+function getRows(){
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const sort=document.getElementById("sort").value;
+  let rows=DATA.filter(r=>{
+    const g=activeGenre==="all"||r.genre.split("・")[0]===activeGenre;
+    const blob=(r.name+r.genre+r.summary+r.signature+(r.scene_tags||[]).join("")+r.review).toLowerCase();
+    return g&&(!q||blob.includes(q))&&r.distance_min<=maxDist&&priceOK(r)&&(!favOnly||favs.has(r.id));
+  });
+  rows.sort((a,b)=>{
+    if(sort==="rate")return (b.rating||0)-(a.rating||0);
+    if(sort==="fav"){const fa=favs.has(a.id)?0:1,fb=favs.has(b.id)?0:1;if(fa!==fb)return fa-fb;return a.distance_min-b.distance_min;}
+    return (a.distance_min-b.distance_min)||((b.rating||0)-(a.rating||0));
+  });
+  return rows;
+}
+
+function render(){
+  const rows=getRows();
+  document.getElementById("count").innerHTML='<span>'+rows.length+'件を表示</span>'+(favs.size?'<span>★お気に入り '+favs.size+'件</span>':'');
+  document.getElementById("list").innerHTML = rows.map((r,i)=>{
+    const top=r.rating!=null&&r.rating>=3.7;
+    const aw=(r.awards||[]).map(a=>'<span class="award">🏅 '+a+'</span>').join("");
+    const tg=(r.scene_tags||[]).map(t=>'<span class="tag" onclick="tagClick(\''+t+'\')">#'+t+'</span>').join("");
+    const rev=r.review?'<div class="review">“'+r.review+'”</div>':"";
+    const init=(r.name.replace(/[^一-龯ぁ-んァ-ンA-Za-z]/,"").charAt(0))||"🍴";
+    const on=favs.has(r.id)?" on":"";
+    return '<div class="card'+(top?' top':'')+'" id="card-'+r.id+'">'
+      +'<div class="thumb">'+(top?'<span class="topbadge">★高評価</span>':'')+init+'</div>'
+      +'<div class="body">'
+        +'<div class="row1"><div><span class="rank">'+(i+1)+'</span><span class="name">'+r.name+'</span></div>'
+          +'<div style="display:flex;align-items:center;gap:8px">'+scoreHTML(r)+'<button class="fav'+on+'" title="お気に入り" onclick="toggleFav(\''+r.id+'\')">'+(on?'★':'☆')+'</button></div></div>'
+        +'<div class="meta"><span class="dist">🚶 馬車道 徒歩'+r.distance_min+'分</span> ・ '+r.genre+' ・ 夜'+r.price_dinner+' / 昼'+r.price_lunch+' ・ 休:'+r.closed+'</div>'
+        +aw+'<div class="summary">'+r.summary+'</div><div class="sig">🍽 名物：<b>'+r.signature+'</b></div>'+rev
+        +'<div class="tags">'+tg+'</div><div class="meta">📍 '+r.address+'</div>'
+        +'<div class="actions"><span class="mapjump" onclick="openOnMap(\''+r.id+'\')">🗺 地図で見る</span>'
+        +'<a class="tl-link" href="'+r.tabelog_url+'" target="_blank" rel="noopener">詳しく見る（口コミ元）→</a></div>'
+      +'</div></div>';
+  }).join("") || '<div class="empty">条件に合うお店がありません。フィルタを緩めてみてください。</div>';
+
+  if(mapReady&&markerLayer){
+    markerLayer.clearLayers();markerById={};
+    rows.forEach((r,i)=>{
+      if(r.lat==null||r.lng==null)return;
+      const isFav=favs.has(r.id);
+      const icon=L.divIcon({className:"",html:'<div class="pin'+(isFav?' fav':'')+'"><span>'+(isFav?'★':(i+1))+'</span></div>',iconSize:[26,26],iconAnchor:[13,26]});
+      const sc=r.rating!=null?"★"+r.rating.toFixed(2)+" <small>("+r.rating_source+")</small>":"評価準備中";
+      const m=L.marker([r.lat,r.lng],{icon}).addTo(markerLayer)
+        .bindPopup('<b>'+r.name+'</b><br><span class="ps">🚶徒歩'+r.distance_min+'分 / '+sc+'</span><br>'+r.genre+'<br>🍽 '+r.signature+'<br><a href="'+r.tabelog_url+'" target="_blank" rel="noopener">口コミを見る →</a>');
+      markerById[r.id]=m;
+    });
+  }
+}
+
+function initMap(){
+  if(mapReady)return;
+  map=L.map("map",{scrollWheelZoom:false}).setView([STATION.lat,STATION.lng],16);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap"}).addTo(map);
+  const sIcon=L.divIcon({className:"",html:'<div class="pin station"><span>駅</span></div>',iconSize:[26,26],iconAnchor:[13,26]});
+  L.marker([STATION.lat,STATION.lng],{icon:sIcon}).addTo(map).bindPopup("<b>馬車道駅</b>");
+  markerLayer=L.layerGroup().addTo(map);
+  mapReady=true;
+}
+function setView(v){
+  const mapEl=document.getElementById("map"),note=document.getElementById("mapnote"),list=document.getElementById("list");
+  const bM=document.getElementById("btnMap"),bL=document.getElementById("btnList");
+  if(v==="map"){initMap();mapEl.style.display="block";note.style.display="block";list.style.display="none";bM.classList.add("active");bL.classList.remove("active");setTimeout(()=>map.invalidateSize(),60);render();}
+  else{mapEl.style.display="none";note.style.display="none";list.style.display="block";bL.classList.add("active");bM.classList.remove("active");render();}
+}
+function openOnMap(id){
+  setView("map");
+  setTimeout(()=>{const m=markerById[id];const r=DATA.find(x=>x.id===id);if(m){map.setView([r.lat,r.lng],17);m.openPopup();}},120);
+}
+
+document.getElementById("search").addEventListener("input",render);
+document.getElementById("sort").addEventListener("change",render);
+var _d=document.getElementById("dist");_d.min=DMIN;_d.max=DMAX;_d.value=DMAX;document.getElementById("distVal").textContent=DMAX+"分以内";
+document.getElementById("updates").innerHTML=UPDATES.slice().reverse().map(u=>'<li><span class="ud">'+u.date+'</span> <span class="ua">［'+u.angle+'］</span><br>'+u.note+'</li>').join("");
+render();
+</script>
+</body>
+</html>
