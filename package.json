@@ -1,0 +1,9 @@
+{
+  "name": "bashamichi-gourmet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "馬車道グルメ お気に入り同期用 Netlify Functions",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
