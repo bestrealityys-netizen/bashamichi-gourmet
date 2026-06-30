@@ -1,4 +1,9 @@
 # Netlify continuous deployment 設定（方式B）
 # site/ 配下の静的ファイル（index.html）を公開。お気に入り同期用に Functions を有効化。
 [build]
-  publish = "s
+  publish = "site"
+  command = ""
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
